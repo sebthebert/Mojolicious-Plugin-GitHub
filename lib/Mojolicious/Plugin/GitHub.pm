@@ -27,6 +27,7 @@ https://developer.github.com/v3/oauth/
 use strict;
 use warnings;
 
+use Data::Printer;
 use Mojo::Base 'Mojolicious::Plugin';
 use Mojo::UserAgent;
 
@@ -104,14 +105,22 @@ sub github_oauth_authcallback
     foreach my $param (split(/&/, $tx->res->body))
     {
         my ($key, $value) = split(/=/, $param);
+		printf "%s => %s\n", $key, $value;
         $self->session('github_access_token' => $value)
             if ($key eq 'access_token');
     }
 
     $tx  = $ua->get("https://api.github.com/user?access_token=" . $self->session('github_access_token'));
     #set our session variables to the stuff we got from github
-    #$self->session('github_avatar_url' => $tx->res->json('/avatar_url'));
-    $self->redirect_to($gh_redirect);
+    $self->session('github_user_avatar_url' => $tx->res->json('/avatar_url'));
+	$self->session('github_user_login' => $tx->res->json('/login'));
+	$self->session('github_user_name' => $tx->res->json('/name'));
+
+    p $tx->res->json();
+
+	#GET /users/:username/repos
+ 
+	$self->redirect_to($gh_redirect);
 }
 
 1;
